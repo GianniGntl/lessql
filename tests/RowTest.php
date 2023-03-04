@@ -74,6 +74,7 @@ class RowTest extends TestBase
         $db = self::$db;
 
         $row = $db->createRow('user', array('name' => 'Foo Bar'));
+        $this->expectException(\LogicException::class);
         $row->setClean();
     }
 

@@ -464,7 +464,7 @@ class ResultTest extends TestBase
         $json = json_encode($db->user()->select('id'));
         $expected = '[{"id":"1"},{"id":"2"},{"id":"3"}]';
 
-        if (self::driver() === 'pgsql') {
+        if ((self::driver() === 'pgsql') || (version_compare(phpversion(), '8.0.0', '>='))) {
             // TODO is this expected behavior or should LessQL do something about it?
             $expected = '[{"id":1},{"id":2},{"id":3}]';
         }
@@ -478,6 +478,8 @@ class ResultTest extends TestBase
      */
     public function testBadReference()
     {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('"post_id" does not exist in "user" result');
         $db = self::$db;
 
         $db->user()->post()->fetchAll();

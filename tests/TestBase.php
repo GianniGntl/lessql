@@ -8,7 +8,7 @@ class TestBase extends PHPUnit\Framework\TestCase
     public static $pdo;
     public static $db;
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         // do this only once
         if (isset(self::$db)) {
@@ -116,7 +116,11 @@ class TestBase extends PHPUnit\Framework\TestCase
 			" . $s . " varchar(30) NOT NULL
         )");
 
-        self::$pdo->commit();
+        // autocommit on DDL in php >= 8.x
+        // if (version_compare(PHP_VERSION, '8.0.0') < 0)
+        if (self::$pdo->inTransaction()) {
+            self::$pdo->commit();
+        }
     }
 
     public static function reset()
@@ -137,6 +141,12 @@ class TestBase extends PHPUnit\Framework\TestCase
             self::query("ALTER TABLE post AUTO_INCREMENT = 1");
             self::query("ALTER TABLE category AUTO_INCREMENT = 1");
             self::query("ALTER TABLE dummy AUTO_INCREMENT = 1");
+        }
+
+        // autocommit on DDL in php >= 8.x
+        // if (version_compare(PHP_VERSION, '8.0.0') >= 0)
+        if (!self::$pdo->inTransaction()) {
+            self::$pdo->beginTransaction();
         }
 
         if (self::driver() === 'pgsql') {
@@ -218,7 +228,7 @@ class TestBase extends PHPUnit\Framework\TestCase
 
     protected $needReset = false;
 
-    public function setUp()
+    public function setUp(): void
     {
         self::$db->setQueryCallback(array($this, 'onQuery'));
         $this->queries = array();
@@ -235,7 +245,7 @@ class TestBase extends PHPUnit\Framework\TestCase
         $this->params[] = $params;
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         self::clearTransaction();
 
